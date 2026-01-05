@@ -32,7 +32,7 @@ resource "azurerm_subnet" "subnet" {
   address_prefixes     = ["10.0.1.0/24"]
 }
 
-# Publiczne IP, żebyś mógł wejść na aplikację
+# Publiczne IP
 resource "azurerm_public_ip" "public_ip" {
   name                = "pip-${var.environment}"
   resource_group_name = azurerm_resource_group.rg.name
@@ -54,7 +54,7 @@ resource "azurerm_network_interface" "nic" {
   }
 }
 
-# Security Group - otwieramy port 22 (SSH) i 8000 (Django App)
+# Security Group - port 22 (SSH) i 8443 (Django App dla https)
 resource "azurerm_network_security_group" "nsg" {
   name                = "nsg-${var.environment}"
   location            = azurerm_resource_group.rg.location
@@ -79,7 +79,7 @@ resource "azurerm_network_security_group" "nsg" {
     access                     = "Allow"
     protocol                   = "Tcp"
     source_port_range          = "*"
-    destination_port_range     = "8000"
+    destination_port_range     = "8443"
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
@@ -95,7 +95,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
   name                = "vm-${var.environment}"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
-  size                = "Standard_B1s" # Tani standard dla studentów
+  size                = "Standard_B1s"
   admin_username      = "adminuser"
   network_interface_ids = [
     azurerm_network_interface.nic.id,
@@ -103,7 +103,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
 
   admin_ssh_key {
     username   = "adminuser"
-    public_key = file("~/.ssh/id_rsa.pub") # Tu GitHub Actions podstawi klucz
+    public_key = file("~/.ssh/id_rsa.pub") # Tu GitHub Actions dodac klucz
   }
 
   os_disk {
@@ -118,7 +118,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
     version   = "latest"
   }
 
-  # CLOUD-INIT: To jest serce automatyzacji.
+  # CLOUD-INIT
   # Instaluje Dockera i uruchamia kontener z aplikacją.
   custom_data = base64encode(<<-EOF
     #!/bin/bash
@@ -127,13 +127,13 @@ resource "azurerm_linux_virtual_machine" "vm" {
     systemctl start docker
     systemctl enable docker
     
-    # Pobranie repozytorium (lub obrazu z Docker Hub jeśli zbudujesz go wcześniej)
-    git clone https://github.com/munuhee/sales-and-inventory-management /app
+    # Pobranie repozytorium
+    git clone https://github.com/ZBI-project/sales-and-inventory-management-ZBI /app
     cd /app
     
-    # Prosta instalacja zależności i uruchomienie (wersja uproszczona bez Docker Hub)
+    # Instalacja zależności i uruchomienie (wersja uproszczona bez Docker Hub)
     docker build -t django-app .
-    docker run -d -p 8000:8000 --name sales-app django-app
+    docker run -d -p 8443:8443 --name sales-app django-app
   EOF
   )
 }
