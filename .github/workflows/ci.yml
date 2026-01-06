@@ -147,3 +147,34 @@ jobs:
           path: |
             report_zap_html.html
             report_zap_json.json
+
+
+# ---------------------------------------------------
+  # JOB 4: DEPLOY TO AZURE (Wdrożenie na produkcję)
+  # ---------------------------------------------------
+  deploy:
+    name: Deploy to Azure Web App
+    runs-on: ubuntu-latest
+    # Deploy wykonaj TYLKO, jeśli przeszły testy jakości, SAST i DAST
+    needs: [build-and-test, security-scans, dast-scan] 
+    environment:
+      name: 'Production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      # Logowanie do Azure (opcjonalne przy Publish Profile, ale dobra praktyka)
+      # W tym prostym scenariuszu pomijamy 'azure/login', polegamy na profilu.
+
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'zbi-inventory-app'  # np. zbi-sales-app
+          slot-name: 'production'
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: .
+          # Opcjonalnie: komenda startowa, jeśli nie zadziała automatycznie
+          # startup-command: 'gunicorn --bind=0.0.0.0 --timeout 600 twoj_projekt.wsgi'
