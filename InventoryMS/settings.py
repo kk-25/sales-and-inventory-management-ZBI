@@ -81,25 +81,15 @@ WSGI_APPLICATION = 'InventoryMS.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('AZURE_POSTGRESQL_DATABASE'),
+        'USER': os.environ.get('AZURE_POSTGRESQL_USERNAME'),
+        'PASSWORD': os.environ.get('AZURE_POSTGRESQL_PASSWORD'),
+        'HOST': os.environ.get('AZURE_POSTGRESQL_HOST'),
+        'PORT': '5432',
     }
 }
 
-DB_HOST = os.environ.get('zbi-inventory-app-server.postgres.database.azure.com')
-DB_NAME = os.environ.get('zbi-inventory-app-database')
-DB_USER = os.environ.get('xrvfejudar')
-DB_PASSWORD = os.environ.get('$sx0tyoPJUkcO6Ka')
-
-if DB_HOST:
-    DATABASES['default'] = {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': DB_NAME,
-        'USER': DB_USER,
-        'PASSWORD': DB_PASSWORD,
-        'HOST': DB_HOST,
-        'PORT': '5432',
-    }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
