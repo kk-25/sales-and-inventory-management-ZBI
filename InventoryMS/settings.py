@@ -14,7 +14,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+#
+DEBUG = True
 
 ALLOWED_HOSTS = ['zbi-inventory-app-axfcfebbawe7abet.italynorth-01.azurewebsites.net', 'localhost', '127.0.0.1']
 
