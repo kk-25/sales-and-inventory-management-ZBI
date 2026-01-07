@@ -1,6 +1,8 @@
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -79,16 +81,58 @@ WSGI_APPLICATION = 'InventoryMS.wsgi.application'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('AZURE_POSTGRESQL_DATABASE'),
-        'USER': os.environ.get('AZURE_POSTGRESQL_USERNAME'),
-        'PASSWORD': os.environ.get('AZURE_POSTGRESQL_PASSWORD'),
-        'HOST': os.environ.get('AZURE_POSTGRESQL_HOST'),
-        'PORT': '5432',
+import os
+from pathlib import Path
+from dotenv import load_dotenv  # <--- Importujemy to
+
+# Ładujemy zmienne z pliku .env (jeśli istnieje - czyli tylko lokalnie)
+load_dotenv()
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# 1. SECRET KEY
+# Pobierz z otoczenia. Jeśli nie ma (błąd konfiguracji), rzuć błędem lub użyj tymczasowego
+SECRET_KEY = os.environ.get('SECRET_KEY')
+
+# 2. DEBUG
+# Uwaga: Zmienne środowiskowe to zawsze TEKST. Musimy zamienić tekst "True" na logikę.
+# Jeśli w zmiennych jest słowo 'True', to DEBUG będzie włączony. W przeciwnym razie False.
+#DEBUG = os.environ.get('DEBUG') == 'True'
+
+ALLOWED_HOSTS = ['zbi-inventory-app.azurewebsites.net', 'localhost', '127.0.0.1']
+
+# ...
+
+# 3. DATABASE
+# Tutaj robimy "sprytny" warunek.
+# Jeśli Azure podstawił nam dane do bazy (czyli zmienna DB_HOST istnieje) -> Używamy Postgresa.
+# Jeśli nie (jesteśmy w domu) -> Używamy SQLite.
+
+DB_HOST = os.environ.get('AZURE_POSTGRESQL_HOST')
+DB_NAME = os.environ.get('AZURE_POSTGRESQL_DATABASE')
+DB_USER = os.environ.get('AZURE_POSTGRESQL_USERNAME')
+DB_PASSWORD = os.environ.get('AZURE_POSTGRESQL_PASSWORD')
+
+if DB_HOST:
+    # Jesteśmy na Azure (Produkcja)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': DB_NAME,
+            'USER': DB_USER,
+            'PASSWORD': DB_PASSWORD,
+            'HOST': DB_HOST,
+            'PORT': '5432',
+        }
     }
-}
+else:
+    # Jesteśmy lokalnie (Development)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
