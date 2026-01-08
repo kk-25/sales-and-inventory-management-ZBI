@@ -94,7 +94,7 @@ jobs:
 
       # 2. BANDIT (SAST) - Analiza kodu Python
       - name: Install and Run Bandit (SAST)
-      if: always()
+        if: always()
         run: |
           pip install bandit
           # QUALITY GATE: Usunąłem "|| true". 
@@ -111,9 +111,7 @@ jobs:
   # ---------------------------------------------------
   # JOB 3: DAST (Dynamiczne skanowanie)
   # ---------------------------------------------------
-  # ---------------------------------------------------
-  # JOB 3: DAST (Dynamiczne skanowanie)
-  # ---------------------------------------------------
+
   dast-scan:
     name: DAST (OWASP ZAP)
     runs-on: ubuntu-latest
