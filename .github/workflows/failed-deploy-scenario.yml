@@ -94,6 +94,7 @@ jobs:
 
       # 2. BANDIT (SAST) - Analiza kodu Python
       - name: Install and Run Bandit (SAST)
+      if: always()
         run: |
           pip install bandit
           # QUALITY GATE: Usunąłem "|| true". 
@@ -147,8 +148,10 @@ jobs:
         with:
           name: zap-scan-report
           path: |
-            report_zap_html.html
-            report_zap_json.json
+            *zap_report*
+            *.html
+            *.json
+          if-no-files-found: ignore 
 
   # ---------------------------------------------------
   # JOB 4: FAILURE HANDLING (Dual Reporting)
