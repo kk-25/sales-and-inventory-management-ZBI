@@ -148,10 +148,8 @@ jobs:
         with:
           name: zap-scan-report
           path: |
-            *zap_report*
-            *.html
-            *.json
-          if-no-files-found: ignore 
+            report_zap_html.html
+            report_zap_json.json
 
   # ---------------------------------------------------
   # JOB 4: FAILURE HANDLING (Dual Reporting)
