@@ -185,18 +185,15 @@ jobs:
             [Link do Pipeline'u](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
 
       # B. AZURE DEVOPS BUG
-      - name: Create Azure DevOps Bug
+      - name: Create Azure DevOps Issue
         env:
           AZURE_DEVOPS_EXT_PAT: ${{ secrets.ADO_PAT }}
         run: |
-          echo "Logowanie do Azure DevOps..."
           echo ${{ secrets.ADO_PAT }} | az devops login
           
-          echo "Tworzenie Bug'a w ADO..."
-          # Usunięto --priority i --tags, które powodowały błąd
           az boards work-item create \
             --title "Security Breach: Pipeline Failed" \
-            --type "Bug" \
+            --type "Issue" \
             --org "https://dev.azure.com/${{ env.ADO_ORG }}" \
             --project "${{ env.ADO_PROJECT }}" \
             --description "Automatyczne zgłoszenie Critical Security Issue.<br>Pipeline URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}<br>CC: ${{ env.DEV_GROUP }}"
