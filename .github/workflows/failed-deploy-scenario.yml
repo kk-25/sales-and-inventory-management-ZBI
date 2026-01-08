@@ -185,7 +185,7 @@ jobs:
             [Link do Pipeline'u](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
 
       # B. AZURE DEVOPS BUG
-- name: Create Azure DevOps Bug
+      - name: Create Azure DevOps Bug
         if: failure()
         env:
           AZURE_DEVOPS_EXT_PAT: ${{ secrets.ADO_PAT }}
