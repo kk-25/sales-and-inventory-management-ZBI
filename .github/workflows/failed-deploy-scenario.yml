@@ -26,7 +26,7 @@ jobs:
   # JOB 1: BUILD & TEST
   # ---------------------------------------------------
   build-and-test:
-    name: Build & Unit Tests
+    name: Build & Lint Tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -172,7 +172,7 @@ jobs:
           # Przypisuje autora commita
           assignees: ${{ github.actor }} 
           body: |
-            ### 🛡️ Security Pipeline Failed
+            ### Security Pipeline Failed
             Wykryto krytyczne błędy bezpieczeństwa. Wdrożenie zostało zablokowane.
             
             **Szczegóły:**
