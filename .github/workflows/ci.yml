@@ -12,8 +12,6 @@ permissions:
 
 jobs:
 
-  # JOB 1: QUALTY & TESTS (Jakość kodu i testy funkcjonalne)
-  # ---------------------------------------------------
   build-and-test:
     name: Build, Lint
     runs-on: ubuntu-latest
