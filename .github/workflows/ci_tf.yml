@@ -1,21 +1,25 @@
-name: DevSecOps CI/CD Pipeline
+name: DevSecOps CI
 
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+#on:
+#  push:
+#    branches: ["release", "main"]
+#  pull_request:
+#    branches: ["release", "main"]
 
 permissions:
   contents: read
   security-events: write
+#  pull-requests: write # moze byc przydatne dla terraforma ale jeszcze nie wiem
+  id-token: write #to do azure jesli uzywa sie OIDC
 
 jobs:
-
+  # ---------------------------------------------------
+  # JOB 1: QUALTY & TESTS (Jakość kodu i testy funkcjonalne)
+  # ---------------------------------------------------
   build-and-test:
     name: Build, Lint
     runs-on: ubuntu-latest
-    
+
     env:
       SECRET_KEY: ${{ secrets.DJANGO_CI_KEY }}
       DEBUG: 'False'
@@ -56,7 +60,7 @@ jobs:
     name: Security Checks (SAST, SCA, Secrets)
     runs-on: ubuntu-latest
     needs: build-and-test # Uruchom tylko, jeśli build przeszedł
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -69,7 +73,7 @@ jobs:
       # 1. SAST: Bandit (uruchamiany bezpośrednio)
       - name: Install and Run Bandit (SAST)
         run: |
-          pip install bandit 
+          pip install bandit
           bandit -r . -ll || true
           bandit -r . -ll -f json -o bandit_report.json || true
 
@@ -79,7 +83,8 @@ jobs:
         with:
           name: sast-bandit-report
           path: bandit_report.json
-# -------------------------------------------------------
+
+      # -------------------------------------------------------
       # 2. TRIVY (SCA & Secrets) - Oficjalna Akcja
       # Konfiguracja: scan-type: 'fs' (FileSystem)
       # -------------------------------------------------------
@@ -98,7 +103,7 @@ jobs:
       - name: Upload Trivy Report
         if: always()
         run: cat trivy_report.txt
-      
+
       - name: Archive Trivy Report
         if: always()
         uses: actions/upload-artifact@v4
@@ -113,7 +118,7 @@ jobs:
     name: DAST (OWASP ZAP)
     runs-on: ubuntu-latest
     needs: build-and-test
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -125,7 +130,7 @@ jobs:
           pip install -r requirements.txt
           python manage.py migrate
           python manage.py runserver 0.0.0.0:8000 &
-          sleep 10 
+          sleep 10
         # Czekamy aż wstanie
 
       - name: OWASP ZAP Baseline Scan
@@ -133,7 +138,7 @@ jobs:
         with:
           target: 'http://localhost:8000'
           # Fail tylko na bardzo poważnych błędach, bo ZAP często zgłasza "false positives"
-          fail_action: false 
+          fail_action: false
           allow_issue_writing: false  # <--- Wyłączamy próbę tworzenia Issue
           cmd_options: '-a'
 
@@ -146,33 +151,76 @@ jobs:
             report_zap_html.html
             report_zap_json.json
 
-
-# ---------------------------------------------------
-  # JOB 4: DEPLOY TO AZURE (Wdrożenie na prod)
   # ---------------------------------------------------
-  deploy:
-    name: Deploy to Azure Web App
+  # JOB 4: Terraform Docker (deploy -> release)
+  # Uruchamia sie po przejsciu testow
+  # ---------------------------------------------------
+  terraform-docker:
+    name: Terraform Docker (Local Environment)
+    runs-on: ubuntu latest
+    needs: build-and-test # jakie skany potrzebujemy !!
+    if: github.event_name == 'pull_request' && github.base_ref == 'release' && github.head_ref == 'deploy'
+
+    defaults:
+      run:
+        working-directory: ./terraform/docker
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v4
+
+        - name: Setup Terraform
+          uses: hashicorp/setup-terraform@v3
+
+        - name: Terraform Init
+          run: terraform init
+
+        - name: Terraform Plan
+          env:
+            TF_VAR_django_secret_key: ${{ secrets.DJANGO_CI_KEY }}
+          run: terraform plan -input=false
+
+        - name: Terraform Apply
+          env:
+            TF_VAR_django_secret_key: ${{ secrets.DJANGO_CI_KEY }}
+          run: terraform apply -auto-approve -input=false
+
+  # ---------------------------------------------------
+  # JOB 5: Terraform Azure (release -> main)
+  # ---------------------------------------------------
+  terraform-azure:
+    name: Terraform Azure (prod)
     runs-on: ubuntu-latest
-    # Deploy wykonaj TYLKO, jeśli przeszły testy jakości, SAST i DAST
-    needs: [build-and-test, security-scans, dast-scan] 
-    environment:
-      name: 'Production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    needs: [build-and-test, security-scans] # jakie skany potrzebujemy !!
+    if: github.event_name == 'pull_request' && github.base_ref == 'main' && github.head_ref == 'release'
+
+    defaults:
+      run:
+        working-directory: ./terraform/azure
+
+    env: # to dodac pozniej jak bedzie dzialac tf
+      ARM_CLIENT_ID: ${{  }}
+      ARM_CLIENT_SECRET: ${{  }}
+      ARM_SUBSCRIPTION_ID: ${{  }}
+      ARM_TENANT_ID: ${{  }}
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
-      # Logowanie do Azure (opcjonalne przy Publish Profile, ale dobra praktyka)
-      # W tym prostym scenariuszu pomijamy 'azure/login', polegamy na profilu.
+      - name: Create SSH Key File # to mamy w main w azure ze potrzebujemy ssh klucza
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PUBLIC_KEY }}" > ~/.ssh/id_rsa.pub
+          chmod 644 ~/.ssh/id_rsa.pub
 
-      - name: Deploy to Azure Web App
-        id: deploy-to-webapp
-        uses: azure/webapps-deploy@v2
-        with:
-          app-name: 'zbi-inventory-app'  # np. zbi-sales-app
-          slot-name: 'production'
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: .
-          # Opcjonalnie: komenda startowa, jeśli nie zadziała automatycznie
-          # startup-command: 'gunicorn --bind=0.0.0.0 --timeout 600 twoj_projekt.wsgi'
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Plan
+        run: terraform plan -input=false
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve -input=false
