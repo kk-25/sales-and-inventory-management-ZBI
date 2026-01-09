@@ -125,16 +125,12 @@ jobs:
           SECURE_SSL_REDIRECT: "False"
           DEBUG: "True"
         run: |
-          pip install -r requirements.txt gunicorn  # Dodaj gunicorn
+          pip install -r requirements.txt gunicorn
           python manage.py migrate
-          # GUNICORN - binduje lepiej niż runserver
-          gunicorn --bind 0.0.0.0:8000 \
-                   --timeout 180 \
-                   --workers 2 \
-                   --preload \
-                   InventoryMS.wsgi:application &
-          sleep 10
-        # Czekamy aż wstanie
+          gunicorn --bind 0.0.0.0:8000 --timeout 180 --workers 1 InventoryMS.wsgi:application &
+          sleep 20
+          curl -f http://localhost:8000/
+          # Czekamy aż wstanie
 
       - name: OWASP ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.15.0
