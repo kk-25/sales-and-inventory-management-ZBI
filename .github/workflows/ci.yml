@@ -11,7 +11,7 @@ permissions:
   security-events: write
 
 jobs:
-  # ---------------------------------------------------
+
   # JOB 1: QUALTY & TESTS (Jakość kodu i testy funkcjonalne)
   # ---------------------------------------------------
   build-and-test:
