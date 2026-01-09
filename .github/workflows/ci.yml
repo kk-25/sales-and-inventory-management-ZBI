@@ -121,6 +121,9 @@ jobs:
       # Aby zrobić DAST, aplikacja musi działać.
       # Uruchamiamy ją w tle w kontenerze/procesie, a potem skanujemy.
       - name: Set up Python & Run App
+        env:
+          SECURE_SSL_REDIRECT: "False"
+          DEBUG: "True"
         run: |
           pip install -r requirements.txt gunicorn  # Dodaj gunicorn
           python manage.py migrate
