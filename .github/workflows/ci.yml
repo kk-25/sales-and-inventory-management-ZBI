@@ -122,10 +122,8 @@ jobs:
       # Uruchamiamy ją w tle w kontenerze/procesie, a potem skanujemy.
       - name: Set up Python & Run App
         env:
-            SECURE_SSL_REDIRECT: "False"
-            DEBUG: "True"
-            ALLOWED_HOSTS: "*"  # ZAP wysyła dziwne Host headers
-            CSRF_TRUSTED_ORIGINS: "http://localhost:8000"
+          DJANGO_SETTINGS_MODULE: "InventoryMS.settings_dast"  # Kluczowe!
+          DEBUG: "True"
         run: |
           pip install -r requirements.txt
           python manage.py migrate
