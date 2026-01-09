@@ -122,8 +122,10 @@ jobs:
       # Uruchamiamy ją w tle w kontenerze/procesie, a potem skanujemy.
       - name: Set up Python & Run App
         env:
-          SECURE_SSL_REDIRECT: "False"
-          DEBUG: "True"
+            SECURE_SSL_REDIRECT: "False"
+            DEBUG: "True"
+            ALLOWED_HOSTS: "*"  # ZAP wysyła dziwne Host headers
+            CSRF_TRUSTED_ORIGINS: "http://localhost:8000"
         run: |
           pip install -r requirements.txt gunicorn
           python manage.py migrate
