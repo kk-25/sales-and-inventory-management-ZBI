@@ -127,13 +127,12 @@ jobs:
             ALLOWED_HOSTS: "*"  # ZAP wysyła dziwne Host headers
             CSRF_TRUSTED_ORIGINS: "http://localhost:8000"
         run: |
-          export SECURE_SSL_REDIRECT=0  # Liczba zero!
-          export DJANGO_SETTINGS_MODULE="InventoryMS.settings"
-          pip install -r requirements.txt gunicorn
+          pip install -r requirements.txt
           python manage.py migrate
-          gunicorn --bind 0.0.0.0:8000 --workers 1 InventoryMS.wsgi &
+          # runserver --insecure = wyłącza HTTPS middleware!
+          python manage.py runserver 0.0.0.0:8000 --insecure &
           sleep 20
-          curl -v http://localhost:8000/
+          curl -v http://localhost:8000/  # Powinno dać 200 OK!
     # DEBUG requests
 
 
