@@ -21,6 +21,8 @@ ALLOWED_HOSTS = ['zbi-inventory-app-axfcfebbawe7abet.italynorth-01.azurewebsites
 
 CSRF_TRUSTED_ORIGINS = ['https://zbi-inventory-app-axfcfebbawe7abet.italynorth-01.azurewebsites.net']
 
+SECURE_SSL_REDIRECT = True
+
 # Application definition
 
 INSTALLED_APPS = [
