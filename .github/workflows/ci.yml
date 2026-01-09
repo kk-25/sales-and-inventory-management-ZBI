@@ -129,7 +129,7 @@ jobs:
                    --timeout 180 \
                    --workers 2 \
                    --preload \
-                   sales-and-inventory-management-ZBI.wsgi:application &
+                   InventoryMS.wsgi:application &
           sleep 10
         # Czekamy aż wstanie
 
