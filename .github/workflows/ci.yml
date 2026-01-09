@@ -124,6 +124,7 @@ jobs:
         env:
           DJANGO_SETTINGS_MODULE: "InventoryMS.settings_dast"  # Kluczowe!
           DEBUG: "True"
+          DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
         run: |
           pip install -r requirements.txt
           python manage.py migrate
