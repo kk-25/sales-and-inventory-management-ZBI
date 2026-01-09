@@ -21,6 +21,14 @@ ALLOWED_HOSTS = ['zbi-inventory-app-axfcfebbawe7abet.italynorth-01.azurewebsites
 
 CSRF_TRUSTED_ORIGINS = ['https://zbi-inventory-app-axfcfebbawe7abet.italynorth-01.azurewebsites.net/']
 
+SECURE_SSL_REDIRECT = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')  # Azure proxy
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+SECURE_HSTS_SECONDS = 31536000  # 1 rok (opcjonalnie)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+
 # Application definition
 
 INSTALLED_APPS = [
