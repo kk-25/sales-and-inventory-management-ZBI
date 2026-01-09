@@ -127,20 +127,13 @@ jobs:
             ALLOWED_HOSTS: "*"  # ZAP wysyła dziwne Host headers
             CSRF_TRUSTED_ORIGINS: "http://localhost:8000"
         run: |
+          export SECURE_SSL_REDIRECT=0  # Liczba zero!
+          export DJANGO_SETTINGS_MODULE="InventoryMS.settings"
           pip install -r requirements.txt gunicorn
-          export SECURE_SSL_REDIRECT=False
           python manage.py migrate
-          gunicorn --bind 0.0.0.0:8000 --timeout 180 --log-level debug --workers 1 InventoryMS.wsgi:application &
+          gunicorn --bind 0.0.0.0:8000 --workers 1 InventoryMS.wsgi &
           sleep 20
-          echo "=== Test root ==="
-          curl -v -H "Host: localhost" http://localhost:8000/ || echo "Root FAIL"
-          
-          echo "=== Test admin ==="
-          curl -v -H "Host: localhost" http://localhost:8000/admin/ || echo "Admin FAIL"
-          
-          echo "=== Headers test ==="
-          curl -v -H "Host: localhost" -H "Origin: http://localhost:8000" http://localhost:8000/
-          # Czekamy aż wstanie
+          curl -v http://localhost:8000/
     # DEBUG requests
 
 
