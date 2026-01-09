@@ -122,10 +122,15 @@ jobs:
       # Uruchamiamy ją w tle w kontenerze/procesie, a potem skanujemy.
       - name: Set up Python & Run App
         run: |
-          pip install -r requirements.txt
+          pip install -r requirements.txt gunicorn  # Dodaj gunicorn
           python manage.py migrate
-          python manage.py runserver 0.0.0.0:8000 &
-          sleep 10 
+          # GUNICORN - binduje lepiej niż runserver
+          gunicorn --bind 0.0.0.0:8000 \
+                   --timeout 180 \
+                   --workers 2 \
+                   --preload \
+                   your_project.wsgi:application &
+          sleep 10
         # Czekamy aż wstanie
 
       - name: OWASP ZAP Baseline Scan
