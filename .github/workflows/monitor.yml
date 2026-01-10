@@ -17,8 +17,8 @@ on:
 env:
   TARGET_URL: "https://zbi-inventory-app-axfcfebbawe7abet.italynorth-01.azurewebsites.net/"
 
-  ADO_ORG: "ZBI-project"
-  ADO_PROJECT: "ZBI-project"
+  ADO_ORG: "ZBI-projekt"
+  ADO_PROJECT: "ZBI-projekt"
   DEV_GROUP: "@ZBI-project/Operations"
 
 jobs:
@@ -31,7 +31,7 @@ jobs:
       - name: Ping App
         id: ping
         run: |
-          sleep 60 #for app to deploy
+          # sleep 60 #for app to deploy
           echo "Checking availability: ${{ env.TARGET_URL }}"
           HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" ${{ env.TARGET_URL }})
           echo "HTTP code is $HTTP_CODE"
