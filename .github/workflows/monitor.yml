@@ -61,7 +61,6 @@ jobs:
             --type "Issue" \
             --org "https://dev.azure.com/${{ env.ADO_ORG }}" \
             --project "${{ env.ADO_PROJECT }}" \
-            --priority 1 \
             --description "<h3>Incident info:</h3> \
               <b>Status:</b> App is not responding.<br> \
               <b>Code HTTP:</b> $HTTP_CODE<br> \
